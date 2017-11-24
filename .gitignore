@@ -1,0 +1,16 @@
+*/lib/*
+*/build/*
+*/config/*
+*/msg_gen/*
+*/srv_gen/*
+*/bin/*
+.idea/
+*~
+*.pyc
+qtcreator-build-*
+CMakeLists.txt.user
+cisstLog.txt
+.ropeproject
+*.log
+*.html
+config
