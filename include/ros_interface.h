@@ -47,7 +47,7 @@ private:
      */
 signals:
     void EnableMotor(bool flag);
-    void RunStitch();
+    void runSingleStitch();
     // True for increase, false for decrease
     void SutureSpeed(bool flag);
 

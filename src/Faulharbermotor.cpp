@@ -1,5 +1,4 @@
 #include "Faulharbermotor.h"
-#include "ros_interface.h"
 
 Faulharbermotor::Faulharbermotor()
 {
@@ -8,16 +7,16 @@ Faulharbermotor::Faulharbermotor()
     status=0;
     for (int i=0;i<NODENO;i++)
     {
-        speedLimit[i]=800;
         cmdPos[i]=0;
         msrPos[i]=0;
         msrTem[i]=0;
         msrCur[i]=0;
     }
-    speedScale=0.5;
+    speedLimit[0]=18;
+    speedLimit[1]=1000;
+
+    speedScale=0.4;
     prevDataExchangeTime=0;
-    needleDir=1;
-    enableSig = false;
     //set time tick
     sysTime= new QTime();
     sysTime->start();
@@ -32,8 +31,6 @@ Faulharbermotor::Faulharbermotor()
     for (int node=0; node<NODENO; node++)
     {
         int tem0=getPosition(node);
-        msrPos[node]= tem0;
-        cmdPos[node]= tem0;
         if (tem0!=ERROR_INDEX && tem0!=TIMEOUT_INDEX )
         {
             cout<<"motor"<< node <<" is OK"<<endl;
@@ -41,7 +38,7 @@ Faulharbermotor::Faulharbermotor()
         }
         else
         {
-            cout<<"motor"<< node <<" cannot be connected."<<endl;
+            cout<<"motor"<< node <<" is error"<<endl;
             motorConnect=motorConnect*0;
             exit(1);
         }
@@ -52,39 +49,69 @@ Faulharbermotor::Faulharbermotor()
     {
         for (int node=0; node<NODENO; node++)
         {
-            // disable feedback information to achieve high speed communicaiton
+            //disable feedback information and enable positon reach notify
             char ComPos[15];
-            sprintf(ComPos, "%dANSW0\n",node);
+            sprintf(ComPos, "%dANSW1\n",node);
             sertialPort1->write(ComPos);
-            QThread::msleep(100);
-            //setup speed limit
-            char ComPos1[20];
-            sprintf(ComPos1, "%dSP%d\n",node,speedLimit[node]);
-            sertialPort1->write(ComPos1);
-            QThread::msleep(100);
+            QThread::msleep(15);
+
             //set  motor home position
-//            char ComPos2[15];
-//            sprintf(ComPos2, "%dHO\n",node);
-//            sertialPort1->write(ComPos2);
-//            QThread::msleep(100);
+            char ComPos2[15];
+            sprintf(ComPos2, "%dHO\n",node);
+            sertialPort1->write(ComPos2);
+            QThread::msleep(15);
         }
 
-        // enable motor
-//        enable();
-
-        //start control tick
-        connect(&controlTick, SIGNAL(timeout()) , this, SLOT( control_loop()) );
-
-        connect(&timer_msg, SIGNAL(timeout()) , this, SLOT( msg_loop()) );
-
+        setSpeed(speedScale);
+        QThread::msleep(10);
+        setCurrentLimit(0, 150);
+        QThread::msleep(10);
     }
+
+    //start control tick
+    connect(&controlTick, SIGNAL(timeout()) , this, SLOT( control_loop()) );
+    connect(&timer_msg, SIGNAL(timeout()) , this, SLOT( msg_loop()) );
+}
+
+// set contineous current limit
+void Faulharbermotor::setCurrentLimit(int node, int current)
+{
+    char ComPos[15];
+    sprintf(ComPos, "%dLCC%d\n",node,current);
+    sertialPort1->write(ComPos);
+}
+
+Faulharbermotor::~Faulharbermotor()
+{
+    disable();
 }
 
 void Faulharbermotor::start() {
-    controlTick.start(20);
+    controlTick.start(33);
     // ROS loop timer
     timer_msg.start(100);
-    std::cout << "Enable:" << enableSig << std::endl;
+}
+
+void    Faulharbermotor::setSpeed(double scale)
+{
+    speedScale=scale;
+    for (int node=0; node<NODENO; node++)
+    {
+        double desSpeed= double( speedLimit[node])* scale;
+        int desSpeed_Int=int (desSpeed );
+        char ComPos1[20];
+        sprintf(ComPos1, "%dSP%d\n", node,desSpeed_Int);
+        sertialPort1->write(ComPos1);
+        QThread::msleep(100);
+    }
+}
+
+void    Faulharbermotor::setHome(int node)
+{
+    char ComPos2[15];
+    sprintf(ComPos2, "%dHO\n",node);
+    sertialPort1->write(ComPos2);
+    cout<<"homing motor"<<node<<endl;
 }
 
 deviceInfomation Faulharbermotor::getAllCtrlInfomation()
@@ -97,15 +124,14 @@ deviceInfomation Faulharbermotor::getAllCtrlInfomation()
         ctrlInfo.msrTem[i]=msrTem[i];
         ctrlInfo.msrCur[i]=msrCur[i];
     }
-
         ctrlInfo.connectSig=motorConnect;
         ctrlInfo.enableSig=enableSig;
         ctrlInfo.speedScale=speedScale;
         ctrlInfo.status=status;
 
-        ctrlInfo.speedScale=speedScale;
-        ctrlInfo.absLockUpPos=absLockUpPos;
-        ctrlInfo.absLockDownPos=abdLockDownPos;
+        ctrlInfo.speedScale=  speedScale;
+        ctrlInfo.absLockUpPos=absLockPos;
+        ctrlInfo.absLockDownPos=0;
         ctrlInfo.absOpenPos=absOpenPos;
         ctrlInfo.absClosePos=absClosePos;
         return ctrlInfo;
@@ -123,67 +149,39 @@ bool    Faulharbermotor::isConnected()
     }
 }
 
-double  Faulharbermotor::getMsrPos(int node)
-{
-    return msrPos[node];
-}
-
-void    Faulharbermotor::setCmdPos(double pos, int node)
-{
-    cmdPos[node]=pos;
-}
-
-double  Faulharbermotor::getMsrTem(int node)
-{
-    return msrTem[node];
-}
-
-double  Faulharbermotor::getMsrCur(int node)
-{
-    return msrCur[node];
-}
-
-void    Faulharbermotor::lockUp()
-{
-    cout<<"lock up"<<endl;
-    setCmdPos(absLockUpPos, Motor1);
-}
-
-void    Faulharbermotor::lockDown()
-{
-    cout<<"lock down"<<endl;
-    setCmdPos(abdLockDownPos, Motor1);
-}
-
 void    Faulharbermotor::enable()
 {
     enableSig=true;
     sertialPort1->write("EN\n");
+    cout<<"enable all motor"<<endl;
 }
 
 void    Faulharbermotor::disable()
 {
     enableSig=false;
     sertialPort1->write("DI\n");
+    cout<<"disable all motor"<<endl;
+
 }
 
 void    Faulharbermotor::enableToggle()
 {
-    enableSig=!enableSig;
-    if (enableSig)
+    if (enableSig==true)
     {
-        enable();
+        disable();
     }
     else
     {
-        disable();
+        enable();
     }
 }
 
 void    Faulharbermotor::runSingleStitch()
 {
-    enable();
-    status=1;
+    if (!isDeviceBusy()) {
+        enable();
+        status=1;
+    }
 }
 
 bool    Faulharbermotor::isDeviceBusy()
@@ -200,27 +198,54 @@ bool    Faulharbermotor::isDeviceBusy()
     }
 }
 
-void    Faulharbermotor::setPosition(double pos_f, int node)
+void    Faulharbermotor::setPosition(int pos, int node)
 {
-    int pos= pos_f;
     char ComPos[20];
     sprintf(ComPos, "%dLA%d\n%dM\n", node, pos, node);
     sertialPort1->write(ComPos);
 }
 
-void    Faulharbermotor::setVelocity(double vel_f, int node)
+void    Faulharbermotor::setVelocity(int vel, int node)
 {
-    int vel= vel_f;
     char ComPos[20];
     sprintf(ComPos, "%dV%d\n", node, vel);
     sertialPort1->write(ComPos);
 }
 
-double  Faulharbermotor::getTemprature(int node)
+int     Faulharbermotor::getTemprature(int node)
 {
     int startTime=sysTime->elapsed();
-    double curr_temp=0;
+    int curr_temp=0;
     inquireTemprature(node);
+    QThread::msleep(15);
+    while (sertialPort1->waitForReadyRead(TIMEOUT))
+    {
+        QByteArray temp=sertialPort1->readAll();
+        receivedData.append(temp);
+        for (int i=1;i<receivedData.size(); i++ )
+        {
+            if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
+            {
+                curr_temp=atoi( receivedData.toStdString().c_str() );
+                receivedData.clear();
+
+                //int endTime=sysTime->elapsed();
+                //int timeElapse= endTime - startTime;
+                //cout<< "Motor"<< node<<" temprature:" << curr_temp<< "   Time elapsed:"<<timeElapse<< "ms"<<endl;
+                return curr_temp;
+            }
+        }
+        QThread::msleep(3);
+    }
+    cout<< "get temprature timeout: " << node <<endl;
+    return TIMEOUT_INDEX;
+}
+
+int     Faulharbermotor::getPosition(int node)
+{
+    int startTime=sysTime->elapsed();
+    int curr_pos=0;
+    inquirePos(node);
     QThread::msleep(10);
     while (sertialPort1->waitForReadyRead(TIMEOUT))
     {
@@ -230,54 +255,25 @@ double  Faulharbermotor::getTemprature(int node)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-                curr_temp=atof( receivedData.toStdString().c_str() );
+                curr_pos=atoi( receivedData.toStdString().c_str() );
                 receivedData.clear();
 
-                int endTime=sysTime->elapsed();
-                int timeElapse= endTime - startTime;
-                //cout<< "Motor"<< node<<" temprature:" << curr_temp<< "   Time elapsed:"<<timeElapse<< "ms"<<endl;
-                return curr_temp;
+                //int endTime=sysTime->elapsed();
+                //int timeElapse= endTime - startTime;
+                //cout<< "Motor"<< node<<" position:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
+                return curr_pos;
             }
         }
         QThread::msleep(5);
-    }
-    cout<< "get temprature timeout: " << node <<endl;
-    return TIMEOUT_INDEX;
-}
-
-double  Faulharbermotor::getPosition(int node)
-{
-    int startTime=sysTime->elapsed();
-    double curr_temp=0;
-    inquirePos(node);
-    QThread::msleep(5);
-    while (sertialPort1->waitForReadyRead(TIMEOUT))
-    {
-        QByteArray temp=sertialPort1->readAll();
-        receivedData.append(temp);
-        for (int i=1;i<receivedData.size(); i++ )
-        {
-            if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
-            {
-                curr_temp=atof( receivedData.toStdString().c_str() );
-                receivedData.clear();
-
-                int endTime=sysTime->elapsed();
-                int timeElapse= endTime - startTime;
-                //cout<< "Motor"<< node<<" position:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
-                return curr_temp;
-            }
-        }
-        QThread::msleep(1);
     }
     cout<< "get position timeout: " << node <<endl;
     return TIMEOUT_INDEX;
 }
 
-double  Faulharbermotor::getCurrent(int node)
+int     Faulharbermotor::getCurrent(int node)
 {
     int startTime=sysTime->elapsed();
-    double curr_temp=0;
+    double curr_current=0;
     inquireCurrent(node);
     QThread::msleep(10);
     while (sertialPort1->waitForReadyRead(TIMEOUT))
@@ -288,13 +284,13 @@ double  Faulharbermotor::getCurrent(int node)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-                curr_temp=atof( receivedData.toStdString().c_str() );
+                curr_current=atoi( receivedData.toStdString().c_str() );
                 receivedData.clear();
 
-                int endTime=sysTime->elapsed();
-                int timeElapse= endTime - startTime;
-//                cout<< "Motor"<< node<<" Current:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
-                return curr_temp;
+                //int endTime=sysTime->elapsed();
+                //int timeElapse= endTime - startTime;
+                //cout<< "Motor"<< node<<" position:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
+                return curr_current;
             }
         }
         QThread::msleep(5);
@@ -303,7 +299,7 @@ double  Faulharbermotor::getCurrent(int node)
     return TIMEOUT_INDEX;
 }
 
-void Faulharbermotor::control_loop ()
+void    Faulharbermotor::control_loop()
 {
     // data exchange in manual control mode
     if (status==0)
@@ -319,105 +315,93 @@ void Faulharbermotor::control_loop ()
                 msrCur[i]=getCurrent(i);
             }
             // set position
-            setPosition(cmdPos[i], i);
-            QThread::msleep(2);
+            //setPosition(cmdPos[i], i);
+//            cout<< cmdPos[i]<<endl;
+//            cout<<status<<endl;
+            QThread::msleep(8);
         }
     }
-
-    // data exchange in auto stitching mode
-    const double motor0Speed=10;
-    const double motor1Speed= 600;
-    const double stopMargin0= 5;
-    const double stopMargin1= 100;
 
     // moto 0 move forward
     if (status==1)
     {
-        setVelocity(-motor0Speed*speedScale, Motor0);
+        setSpeed(speedScale);
+        QThread::msleep(15);
+        setCurrentLimit(0, 880);
+        QThread::msleep(15);
+        setCurrentLimit(1, 900);
+        QThread::msleep(15);
+
+        setPositionWithTargetReachNitofy(absClosePos, Motor0);
         status=2;
-        cout<<"status2: "<<endl;
+        cout<<"status2: approching close pos "<<endl;
     }
-        // motor 0 reach stop
+    // motor 0 reach stop
     else if (status==2)
     {
-        inquirePos(Motor0);
-        double pos=0;
-        int sig=readData(pos);
-        msrPos[Motor0]=pos;
-        cmdPos[Motor0]=pos;
-        if (sig==1 &&   pos < absClosePos )
-        {
-            setVelocity(0.0, Motor0);
-            cout<<"status3: " <<"pos0 : "<<pos<<endl;
-            status=3;
-        }
+       if ( targetReached(3800) )
+       {
+           msrPos[Motor0]=absClosePos;
+           status=3;
+           cout<<"status3: close pos reached"<<endl;
+       }
+       else
+       {
+           cout<<"close pos is not reached, timeout"<<endl;
+           cout<<"jump to status 5"<<endl;
+           status=5;
+       }
     }
-        //motor 1 rotate
+    //motor 1 rotate
     else if (status==3)
     {
-        if (needleDir==1)
-        {
-//            setVelocity(-motor1Speed, Motor1);
-            setPosition(absLockUpPos,Motor1);
-        }
-        else
-        {
-//            setVelocity(motor1Speed, Motor1);
-            setPosition(abdLockDownPos,Motor1);
-        }
-        cout<<"status 4"<<endl;
+        setRelativePositionWithTargetReachNitofy(absLockPos, Motor1);
         status=4;
+        cout<<"status4: start locking "<<endl;
     }
 
     else if (status==4)
     {
-        inquirePos(Motor1);
-        double pos=0;
-        int sig=readData(pos);
-        msrPos[Motor1]=pos;
-        cmdPos[Motor1]=pos;
-        if (needleDir==1)
+        if ( targetReached(3300) )
         {
-            if (sig==1 && abs(pos-absLockUpPos)< stopMargin1   )
-            {
-                cout<<"status512: "<<"pos1 : "<<pos<<endl;
-                status=5;
-            }
+            //set new home positon for lock motor
+            msrPos[Motor1]=absLockPos;
+            setHome(Motor1);
+            status=5;
+            cout<<"status5: lock pos reached"<<endl;
         }
-        if (needleDir==-1 )
+        else
         {
-            if (sig==1 && abs(pos-abdLockDownPos)< stopMargin1 )
-            {
-                cout<<"status52: "<<"pos1 : "<<pos<<endl;
-                status=5;
-            }
+            status=52;
+            cout<<"lock pos is not reached, timeout"<<endl;
         }
     }
     else if (status==5 )
     {
-        setVelocity(motor0Speed*speedScale, Motor0);
+        setPositionWithTargetReachNitofy(absOpenPos, Motor0);
+        QThread::msleep(10);
         status=6;
-        cout<<"status 6"<<endl;
+        cout<<"status6: appraching open pos"<<endl;
     }
     else if (status==6)
     {
-        inquirePos(Motor0);
-        double pos=0;
-        int sig=readData(pos);
-        msrPos[Motor0]=pos;
-        cmdPos[Motor0]=pos;
-        if (sig==1 && abs(pos -absOpenPos)<stopMargin0  )
+        if (targetReached(3800) )
         {
-            setVelocity(0, Motor0);
-            cout<<"status7: "<<"pos0 : "<<pos<<endl;
+            msrPos[Motor0]=absOpenPos;
             status=7;
-            needleDir=-needleDir;
+            cout<<"status7: open pos reached"<<endl;
+        }
+        else
+        {
+//            status=72;
+            status=1;
+            cout<<"open pos is not reached, timeout"<<endl;
         }
     }
     else if (status==7)
     {
         inquireTemprature(Motor0);
-        double tempr=0;
+        int tempr=0;
         int sig=readData(tempr);
         if (sig==1)
         {
@@ -429,7 +413,7 @@ void Faulharbermotor::control_loop ()
     else if (status==8)
     {
         inquireTemprature(Motor1);
-        double tempr=0;
+        int tempr=0;
         int sig=readData(tempr);
         if (sig==1)
         {
@@ -442,8 +426,13 @@ void Faulharbermotor::control_loop ()
     {
         // update cmdPos to MsrPos when finish stitching
         status=0;
-        disable();
-        cout<<"stitch finished"<<endl;
+        static int count = 1;
+        cout<<"stitch finished" << ", #" << count++ <<endl;
+        cout<<"\n\n\n"<<endl;
+        setCurrentLimit(0, 180);
+        QThread::msleep(10);
+        setCurrentLimit(1, 200);
+        QThread::msleep(10);
     }
 }
 
@@ -471,9 +460,9 @@ void    Faulharbermotor::inquireTemprature(int node)
 
 // successful:  return 1
 // timeout:     return 0;
-int     Faulharbermotor::readData(double &data)
+int     Faulharbermotor::readData(int &data)
 {
-    while (sertialPort1->waitForReadyRead(20))
+    while (sertialPort1->waitForReadyRead(40))
     {
         QByteArray temp=sertialPort1->readAll();
         receivedData.append(temp);
@@ -486,9 +475,46 @@ int     Faulharbermotor::readData(double &data)
                 return 1;
             }
         }
-        QThread::msleep(1);
+        QThread::msleep(2);
     }
     return 0;
+}
+
+void    Faulharbermotor::setPositionWithTargetReachNitofy(int pos,int node)
+{
+    char ComPos[26];
+    sprintf(ComPos, "%dLA%d\nNP\n%dM\n", node, pos, node);
+    sertialPort1->write(ComPos);
+}
+
+void    Faulharbermotor::setRelativePositionWithTargetReachNitofy(int pos,int node)
+{
+    char ComPos[26];
+    sprintf(ComPos, "%dLR%d\nNP\n%dM\n", node, pos, node);
+    sertialPort1->write(ComPos);
+}
+
+//target reached return 1
+//never reach return 0 within centrain time
+bool    Faulharbermotor::targetReached(int timeout)
+{
+    string cmd;
+    while (sertialPort1->waitForReadyRead(timeout))
+    {
+        QByteArray temp=sertialPort1->readAll();
+        receivedData.append(temp);
+        for (int i=1;i<receivedData.size(); i++ )
+        {
+//            if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
+//            {
+                cmd=receivedData.toStdString();
+                receivedData.clear();
+                return true;
+//            }
+        }
+        QThread::msleep(20);
+    }
+    return false;
 }
 
 void Faulharbermotor::msg_loop() {
@@ -501,14 +527,7 @@ void Faulharbermotor::EnableMotor(bool flag) {
     else disable();
 }
 
-void Faulharbermotor::RunStitch() {
-    // TODO: check if previous stitch finished
-    runSingleStitch();
-}
-
 void Faulharbermotor::SutureSpeed(bool flag) {
     if (flag && speedScale < 1.0)   speedScale+=0.1;
     if (!flag && speedScale > 0.2)   speedScale-=0.1;
 }
-
-
