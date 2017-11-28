@@ -49,11 +49,11 @@ Q_OBJECT
 
 public:
     // if the motor coupler moves, all the parameters need to calibrate agian
-    const double absLockUpPos = 780;
-    const double abdLockDownPos = 25822;
+    const double absLockUpPos = -22620;
+    const double abdLockDownPos = 2164;
 
-    const double absOpenPos=78;
-    const double absClosePos=-743;
+    const double absOpenPos=97;
+    const double absClosePos=-710;
 
     Faulharbermotor();
     deviceInfomation getAllCtrlInfomation();

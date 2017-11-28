@@ -293,7 +293,7 @@ double  Faulharbermotor::getCurrent(int node)
 
                 int endTime=sysTime->elapsed();
                 int timeElapse= endTime - startTime;
-                cout<< "Motor"<< node<<" Current:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
+//                cout<< "Motor"<< node<<" Current:" << curr_temp<< "      Time elapsed:"<<timeElapse<< "ms"<<endl;
                 return curr_temp;
             }
         }
@@ -345,7 +345,7 @@ void Faulharbermotor::control_loop ()
         int sig=readData(pos);
         msrPos[Motor0]=pos;
         cmdPos[Motor0]=pos;
-        if (sig==1 &&   abs(pos-absClosePos)<  stopMargin0 )
+        if (sig==1 &&   pos < absClosePos )
         {
             setVelocity(0.0, Motor0);
             cout<<"status3: " <<"pos0 : "<<pos<<endl;
