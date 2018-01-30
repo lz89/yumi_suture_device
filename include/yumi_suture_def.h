@@ -2,7 +2,7 @@
 #define YUMI_SUTURE_DEF_H
 
 #include <cstdint>
-
+#include <stdint.h>
 /**
  * Suturing device
  */

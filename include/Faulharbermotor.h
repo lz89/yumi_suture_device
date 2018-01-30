@@ -26,27 +26,22 @@
 
 
 #include <QThread>
-#include <fstream>
 #include <QTime>
 #include <QTimer>
 #include <QtSerialPort/QSerialPort>
+#include <QByteArray>
 #include <cmath>
 #include <QDataStream>
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <string>
-#include <cmath>
-#include <iostream>     // std::cout
-#include <algorithm>    // std::max
 #include <QApplication>
 #include "yumi_suture_def.h"
 
 using namespace std;
 
-class Faulharbermotor: public QObject
-{
-Q_OBJECT
+class Faulharbermotor: public QThread
+{  
+    Q_OBJECT  
 
 private:
     QSerialPort *sertialPort1;
@@ -84,14 +79,13 @@ public:
 
     // if the motor coupler moves, all the parameters need to calibrate agian
     const int absLockPos= 8*3000;
-    const int absOpenPos= 0;
-    const int absClosePos=-858;
+    const int absOpenPos= -85;
+    const int absClosePos=-935;
+
 
     Faulharbermotor();
     ~Faulharbermotor();
     deviceInfomation getAllCtrlInfomation();
-
-    void start();
 
     // auto stitching functions
     bool        isConnected();
@@ -100,9 +94,10 @@ public:
     void        disable();
     void        enableToggle();
     void        setSpeed(double scale);
+    void        start ();
 
 private slots:
-    void        control_loop();
+    void        controlLoop();
 
     // Loop for sending deviceInfomation
     void        msg_loop();
@@ -112,11 +107,12 @@ public slots:
 
     void        EnableMotor(bool flag);
 
-    // True for increase, false for decrease
+    // TODO: NOT USED FOR NOW True for increase, false for decrease
     void        SutureSpeed(bool flag);
 
 signals:
     void        newSutureDeviceInfo(deviceInfomation);
+
 };
 
 #endif 
