@@ -12,8 +12,8 @@ Faulharbermotor::Faulharbermotor()
         msrTem[i]=0;
         msrCur[i]=0;
     }
-    speedLimit[0]=15;
-    speedLimit[1]=1000;
+    speedLimit[0]=50;
+    speedLimit[1]=4500;
     needleDir=1;
     speedScale=0.4;
     prevDataExchangeTime=0;
@@ -62,7 +62,7 @@ Faulharbermotor::Faulharbermotor()
 //            msleep(100);
         }
 
-        //setSpeed(speedScale);
+        setSpeed(0.99);
         // enable motor
         //disable();
         enable();
@@ -236,8 +236,7 @@ int     Faulharbermotor::getTemprature(int node)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-//                curr_temp=atoi( receivedData.toStdString().c_str() );
-                curr_temp = receivedData.toInt();
+                curr_temp=atoi( receivedData.toStdString().c_str() );
                 receivedData.clear();
 
                 //int endTime=sysTime->elapsed();
@@ -266,8 +265,7 @@ int     Faulharbermotor::getPosition(int node)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-//                curr_pos=atoi( receivedData.toStdString().c_str() );
-                curr_pos = receivedData.toInt();
+                curr_pos=atoi( receivedData.toStdString().c_str() );
                 receivedData.clear();
 
                 //int endTime=sysTime->elapsed();
@@ -296,8 +294,7 @@ int     Faulharbermotor::getCurrent(int node)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-//                curr_current=atoi( receivedData.toStdString().c_str() );
-                curr_current = receivedData.toInt();
+                curr_current=atoi( receivedData.toStdString().c_str() );
                 receivedData.clear();
 
                 //int endTime=sysTime->elapsed();
@@ -453,8 +450,7 @@ int     Faulharbermotor::readData(int &data)
         {
             if ( (int(receivedData.at(i-1))==13 )&& (int(receivedData.at(i))==10)  )
             {
-//                data=atof( receivedData.toStdString().c_str() );
-                data = receivedData.toInt();
+                data=atof( receivedData.toStdString().c_str() );
                 receivedData.clear();
                 return 1;
             }
