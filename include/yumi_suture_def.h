@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <stdint.h>
+
 /**
  * Suturing device
  */
@@ -11,7 +12,8 @@ enum SUTURE_CTRL{
     SUTURE_DISABLE_MOTOR = 1 << 1,
     SUTURE_RUN_STITCH = 1 << 2,
     SUTURE_SPEED_PLUS = 1 << 3,
-    SUTURE_SPEED_MINUS = 1 << 4
+    SUTURE_SPEED_MINUS = 1 << 4,
+    SUTURE_RUN_PIERCE = 1 << 5
 };
 typedef uint32_t SUTURE_CTRL_CMD;
 
@@ -64,22 +66,25 @@ enum SERVO_CTRL{
     SERVO_DROT_ZN = 1 << 15,
 
     SERVO_ADD_PT = 1 << 16,
-    SERVO_RM_PT = 1 << 17
+    SERVO_RM_PT = 1 << 17,
 
+    SERVO_NEXT_STEP = 1 << 18
 };
 typedef uint32_t SERVO_CTRL_CMD;
 
 /// yumi_vis_servo publish
-enum SERVO_STATE{
-    SERVO_STANDBY = 1 << 0,
-    SERVO_RUNNING = 1 << 1,
-    SERVO_GOTO_HOME_VIS = 1 << 2,
-    SERVO_GOTO_TARGET = 1 << 3,
-    SERVO_RUN_STITCH = 1 << 4,
-    SERVO_PULL_THREAD = 1 << 5,
-    SERVO_GOTO_HOME_KIN = 1 << 6
+enum TASK_STATE{
+    STANDBY = 0,
+//    SERVO_RUNNING = 1,
+            PLAN_TRAJ = 1,
+    GOTO_HOME_VIS = 2,
+    GOTO_TARGET = 3,
+    RUN_STITCH = 4,
+    RUN_PIERCE = 5,
+    RUN_ROTATION = 6,
+    PULL_THREAD = 7,
+    GOTO_HOME_KIN = 8
 };
-typedef uint32_t SERVO_STATE_INFO;
-
+typedef uint32_t SUTURE_TASK_STATE;
 
 #endif  // YUMI_SUTURE_DEF_H

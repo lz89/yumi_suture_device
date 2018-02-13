@@ -16,9 +16,10 @@ void ROSInterface::SutureCtrlCallback(const std_msgs::UInt32ConstPtr &msg) {
     if (cmd & SUTURE_ENABLE_MOTOR) Q_EMIT EnableMotor(true);
     if (cmd & SUTURE_DISABLE_MOTOR) Q_EMIT EnableMotor(false);
 
-    if (cmd & SUTURE_RUN_STITCH) Q_EMIT runSingleStitch();
-    if (cmd & SUTURE_SPEED_PLUS) Q_EMIT SutureSpeed(true);
-    if (cmd & SUTURE_SPEED_MINUS) Q_EMIT SutureSpeed(false);
+    if (cmd & SUTURE_RUN_STITCH)    Q_EMIT runSingleStitch();
+    if (cmd & SUTURE_SPEED_PLUS)    Q_EMIT SutureSpeed(true);
+    if (cmd & SUTURE_SPEED_MINUS)   Q_EMIT SutureSpeed(false);
+    if (cmd & SUTURE_RUN_PIERCE)        Q_EMIT runPierceDeg(20);
 }
 
 void ROSInterface::newSutureDeviceInfo(deviceInfomation info) {

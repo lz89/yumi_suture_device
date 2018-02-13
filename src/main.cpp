@@ -11,6 +11,7 @@ void qt_connections(Faulharbermotor* device, ROSInterface* itface)
 
     QObject::connect(itface,  &ROSInterface::EnableMotor, device, &Faulharbermotor::EnableMotor);
     QObject::connect(itface,  &ROSInterface::runSingleStitch, device, &Faulharbermotor::runSingleStitch);
+    QObject::connect(itface,  &ROSInterface::runPierceDeg, device, &Faulharbermotor::runPierceDeg);
     QObject::connect(itface,  &ROSInterface::SutureSpeed, device, &Faulharbermotor::SutureSpeed);
 }
 

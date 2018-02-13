@@ -13,7 +13,7 @@ Faulharbermotor::Faulharbermotor()
         msrCur[i]=0;
     }
     speedLimit[0]=50;
-    speedLimit[1]=4500;
+    speedLimit[1]=1000;
     needleDir=1;
     speedScale=0.4;
     prevDataExchangeTime=0;
@@ -194,6 +194,45 @@ void    Faulharbermotor::runSingleStitch()
 
 }
 
+double calc_ik(double deg) {
+    double deg2rad = M_PI/180;
+    double theta0 = 37.46 + deg;
+    double L1 = 5.3514, L2 = 12.5, L3 = 2.23285;
+    double ang_ECD = abs(theta0 - 90) * deg2rad;
+    double L4 = sqrt(L1*L1 + L3*L3 - 2*L1*L3*cos(ang_ECD));
+    double ang_CED = M_PI - asin((L1*sin(ang_ECD))/L4);
+    double ang_EAD, ang_AED, ang_ADE;
+
+    if (theta0 > 90) {
+        ang_AED = 270*deg2rad - ang_CED;
+    } else {
+        ang_AED = ang_CED - 90*deg2rad;
+    }
+
+    ang_EAD = asin((L4*sin(ang_AED))/L2);
+    ang_ADE = 180*deg2rad - ang_EAD - ang_AED;
+
+    return sqrt(L2*L2 + L4*L4 - 2*L2*L4*cos(ang_ADE));
+}
+
+void    Faulharbermotor::runPierceDeg(double deg)
+{
+
+    double L6_0 = calc_ik(0);
+    double L6_1 = calc_ik(20);
+
+
+    double encoder2mm = 121;
+    double dL = abs(L6_0 - L6_1) * encoder2mm;
+
+    setSpeed(0.1);
+    msleep(10);
+    setPosition( absOpenPos-dL, Motor0);
+    setSpeed(0.99);
+    msleep(10);
+}
+
+
 bool    Faulharbermotor::isDeviceBusy()
 {
     if (status==0)
@@ -356,7 +395,7 @@ void    Faulharbermotor::controlLoop()
     }
     //motor 1 rotate
     else if (status==3)
-    {   
+    {
         if (needleDir==1)
         {
             setRelativePositionWithTargetReachNitofy(absLockPos, Motor1);

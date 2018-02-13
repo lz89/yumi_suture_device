@@ -48,6 +48,7 @@ private:
 signals:
     void EnableMotor(bool flag);
     void runSingleStitch();
+    void runPierceDeg(double deg);
     // True for increase, false for decrease
     void SutureSpeed(bool flag);
 

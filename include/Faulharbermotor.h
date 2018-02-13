@@ -80,7 +80,7 @@ public:
     // if the motor coupler moves, all the parameters need to calibrate agian
     const int absLockPos= 8*3000;
     const int absOpenPos= -85;
-    const int absClosePos=-925;
+    const int absClosePos=-933;
 
 
     Faulharbermotor();
@@ -104,6 +104,7 @@ private slots:
 
 public slots:
     void        runSingleStitch();
+    void        runPierceDeg (double deg);
 
     void        EnableMotor(bool flag);
 
