@@ -19,8 +19,22 @@ void ROSInterface::SutureCtrlCallback(const std_msgs::UInt32ConstPtr &msg) {
     if (cmd & SUTURE_RUN_STITCH)    Q_EMIT runSingleStitch();
     if (cmd & SUTURE_SPEED_PLUS)    Q_EMIT SutureSpeed(true);
     if (cmd & SUTURE_SPEED_MINUS)   Q_EMIT SutureSpeed(false);
-    if (cmd & SUTURE_RUN_PIERCE)        Q_EMIT runPierceDeg(20);
+    if (cmd & SUTURE_RUN_PIERCE_INIT)        Q_EMIT runPierceDeg(0);
+    if (cmd & SUTURE_RUN_PIERCE_1_MM)        Q_EMIT runPierceDeg(0+8.7);
+    if (cmd & SUTURE_RUN_PIERCE_2_MM)        Q_EMIT runPierceDeg(0+17.5);
+    if (cmd & SUTURE_RUN_PIERCE_3_MM)        Q_EMIT runPierceDeg(0+26);
+    if (cmd & SUTURE_RUN_PIERCE_4_MM)        Q_EMIT runPierceDeg(0+34.8);
+    if (cmd & SUTURE_RUN_PIERCE_5_MM)        Q_EMIT runPierceDeg(0+43.5);
+    if (cmd & SUTURE_RUN_PIERCE_6_MM)        Q_EMIT runPierceDeg(0+52.2);
+
 }
+
+// 8.7 deg  ->  1.00 mm
+// 17.5 deg ->  2.01 mm
+// 26 deg   ->  2.99 mm
+// 34.8 deg ->  4.01 mm
+// 43.5 deg ->  5.01 mm
+// 52.2 deg ->  6.01 mm
 
 void ROSInterface::newSutureDeviceInfo(deviceInfomation info) {
     yumi_msg::SutureDeviceInfo msg;

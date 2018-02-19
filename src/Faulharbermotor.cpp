@@ -219,7 +219,7 @@ void    Faulharbermotor::runPierceDeg(double deg)
 {
 
     double L6_0 = calc_ik(0);
-    double L6_1 = calc_ik(20);
+    double L6_1 = calc_ik(deg);
 
 
     double encoder2mm = 121;
