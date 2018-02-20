@@ -9,6 +9,8 @@ ROSInterface::ROSInterface()
 
     /// Publishers
     m_pub_suture_info = nh.advertise<yumi_msg::SutureDeviceInfo>("/yumi_suture_info", 1);
+    m_pub_force_sensor = nh.advertise<geometry_msgs::Vector3>("/yumi_force_sensor", 1);
+
 }
 
 void ROSInterface::SutureCtrlCallback(const std_msgs::UInt32ConstPtr &msg) {
@@ -26,6 +28,9 @@ void ROSInterface::SutureCtrlCallback(const std_msgs::UInt32ConstPtr &msg) {
     if (cmd & SUTURE_RUN_PIERCE_4_MM)        Q_EMIT runPierceDeg(0+34.8);
     if (cmd & SUTURE_RUN_PIERCE_5_MM)        Q_EMIT runPierceDeg(0+43.5);
     if (cmd & SUTURE_RUN_PIERCE_6_MM)        Q_EMIT runPierceDeg(0+52.2);
+
+    if (cmd & FORCE_SENSOR_CONNECT)          Q_EMIT ConnectSensor();
+    if (cmd & FORCE_SENSOR_DISCONNECT)          Q_EMIT DisconnectSensor();
 
 }
 
@@ -60,4 +65,13 @@ void ROSInterface::newSutureDeviceInfo(deviceInfomation info) {
     msg.absClosePos.data = info.absClosePos;
 
     m_pub_suture_info.publish(msg);
+}
+
+void ROSInterface::newForceReading(QVector3D force) {
+    geometry_msgs::Vector3 msg;
+    /// Sensitivity of OMD-20-F G-100N XYZ-1.25|1.25|6.25mN
+    msg.x = force.x() * 0.00125;    // Unit: Newton
+    msg.y = force.y() * 0.00125;
+    msg.z = force.z() * 0.00625;
+    m_pub_force_sensor.publish(msg);
 }

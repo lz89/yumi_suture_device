@@ -1,18 +1,24 @@
 #include <QApplication>
 #include "ros_interface.h"
 #include "Faulharbermotor.h"
+#include "opto_force_sensor.h"
 #include "qnode.h"
 
 ///Connect Signals and Slots
-void qt_connections(Faulharbermotor* device, ROSInterface* itface)
+void qt_connections(Faulharbermotor* device, OptoForceSensor* sensor, ROSInterface* itface)
 {
     /// Suture device info
     QObject::connect(device, &Faulharbermotor::newSutureDeviceInfo, itface,  &ROSInterface::newSutureDeviceInfo);
+    QObject::connect(sensor, &OptoForceSensor::newForceReading, itface,  &ROSInterface::newForceReading);
 
     QObject::connect(itface,  &ROSInterface::EnableMotor, device, &Faulharbermotor::EnableMotor);
     QObject::connect(itface,  &ROSInterface::runSingleStitch, device, &Faulharbermotor::runSingleStitch);
     QObject::connect(itface,  &ROSInterface::runPierceDeg, device, &Faulharbermotor::runPierceDeg);
     QObject::connect(itface,  &ROSInterface::SutureSpeed, device, &Faulharbermotor::SutureSpeed);
+
+    QObject::connect(itface,  &ROSInterface::ConnectSensor, sensor, &OptoForceSensor::ConnectSensor);
+    QObject::connect(itface,  &ROSInterface::DisconnectSensor, sensor, &OptoForceSensor::DisconnectSensor);
+
 }
 
 
@@ -23,9 +29,10 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     Faulharbermotor suture_device;
+    OptoForceSensor force_sensor;
     ROSInterface itface;
 
-    qt_connections(&suture_device, &itface);
+    qt_connections(&suture_device, &force_sensor, &itface);
 
     qtRos.start();
     suture_device.start();

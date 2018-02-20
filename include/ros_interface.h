@@ -14,7 +14,9 @@
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt32.h>
+#include <geometry_msgs/Vector3.h>
 #include <QtCore/QObject>
+#include <QtGui/QVector3D>
 #include "yumi_msg/SutureDeviceInfo.h"
 #include "yumi_suture_def.h"
 
@@ -40,6 +42,8 @@ private:
 private:
     ros::Publisher m_pub_suture_info;
 
+    ros::Publisher m_pub_force_sensor;
+
     ros::Subscriber m_sub_suture_ctrl;
 
     /**
@@ -52,8 +56,14 @@ signals:
     // True for increase, false for decrease
     void SutureSpeed(bool flag);
 
+    /// Force sensor
+    void ConnectSensor ();
+    void DisconnectSensor ();
+
 public slots:
     void newSutureDeviceInfo(deviceInfomation info);
+
+    void newForceReading(QVector3D force);
 
 };
 

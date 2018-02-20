@@ -49,13 +49,21 @@ SET( Sources
     src/qnode.cpp
     src/ros_interface.cpp
     src/Faulharbermotor.cpp
+    src/opto_force_sensor.cpp
 )
 
 SET( Headers 
     include/qnode.h
     include/ros_interface.h
     include/Faulharbermotor.h
-		include/yumi_suture_def.h
+    include/opto_force_sensor.h
+	include/yumi_suture_def.h
+	include/omd/opto.h
+	include/omd/optodaq.h
+	include/omd/optopackage.h
+	include/omd/optopackage6d.h
+	include/omd/optoports.h
+	include/omd/sensorconfig.h
 )
 
 ## Declare a cpp executable
@@ -71,6 +79,7 @@ target_link_libraries(${PROJECT_NAME}_node
 		Qt5::Widgets
 		Qt5::Core
 		Qt5::SerialPort
+		${CMAKE_SOURCE_DIR}/lib/libOMD.so.1.5.1
 )
 
 install(TARGETS ${PROJECT_NAME}_node
