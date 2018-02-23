@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <stdint.h>
+#include <QtCore/QtCore>
 
 /**
  * Suturing device
@@ -47,7 +48,7 @@ struct deviceInfomation
     double absOpenPos;
     double absClosePos;
 };
-
+Q_DECLARE_METATYPE(deviceInfomation)
 
 /**
  * Visual servoing
@@ -98,6 +99,7 @@ enum TASK_STATE{
     RUN_PIERCE_4MM = 12,
     RUN_PIERCE_5MM = 13,
     RUN_PIERCE_6MM = 14,
+    ENABLE_MOTOR = 15
 };
 typedef uint32_t SUTURE_TASK_STATE;
 

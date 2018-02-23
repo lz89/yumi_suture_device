@@ -52,7 +52,7 @@ void QNode::quitNow(){
 }
 
 void QNode::run(){
-    ros::Rate r(10);
+    ros::Rate r(40);
     while(ros::ok()) {
         ros::spinOnce();
         r.sleep();

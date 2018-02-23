@@ -16,16 +16,19 @@
 #include <QVector3D>
 #include "omd/opto.h"
 
-class OptoForceSensor: public QThread {
+class OptoForceSensor: public QObject {
     Q_OBJECT
 public:
     OptoForceSensor();
     ~OptoForceSensor();
 
+    void start(double f);
+
 
 public slots:
     void    ConnectSensor ();
     void    DisconnectSensor ();
+    void    finish();
 
 private:
     OptoDAQ m_daq;
@@ -34,6 +37,10 @@ private:
     QVector3D m_curr_force;
 
     QTimer      timer_daq;
+    QThread     m_thread;
+
+    double freq;
+
 
     bool OpenPort(OptoDAQ & p_optoDAQ, OptoPorts & p_Ports, int p_iIndex);
 

@@ -7,6 +7,7 @@
 ///Connect Signals and Slots
 void qt_connections(Faulharbermotor* device, OptoForceSensor* sensor, ROSInterface* itface)
 {
+    qRegisterMetaType<deviceInfomation>();
     /// Suture device info
     QObject::connect(device, &Faulharbermotor::newSutureDeviceInfo, itface,  &ROSInterface::newSutureDeviceInfo);
     QObject::connect(sensor, &OptoForceSensor::newForceReading, itface,  &ROSInterface::newForceReading);
@@ -36,10 +37,13 @@ int main(int argc, char *argv[])
 
     qtRos.start();
     suture_device.start();
+    force_sensor.start(20);
 
     //If one thread receives a exit signal from the user, signal the other thread to quit too
     QObject::connect(&app, &QApplication::aboutToQuit, &qtRos, &QNode::quitNow);
     QObject::connect(&qtRos, &QNode::rosShutdown, &app, &QApplication::quit);
+    QObject::connect(&app, &QApplication::aboutToQuit, &force_sensor, &OptoForceSensor::finish);
+    QObject::connect(&suture_device, &Faulharbermotor::finished, &suture_device, &QObject::deleteLater);
 
     return app.exec();
 }

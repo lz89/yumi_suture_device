@@ -20,7 +20,6 @@
 #include "yumi_msg/SutureDeviceInfo.h"
 #include "yumi_suture_def.h"
 
-Q_DECLARE_METATYPE(deviceInfomation)
 
 class ROSInterface : public QObject {
 Q_OBJECT

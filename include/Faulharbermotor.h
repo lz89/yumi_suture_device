@@ -35,6 +35,7 @@
 #include <iostream>
 #include <string>
 #include <QApplication>
+#include <QDebug>
 #include "yumi_suture_def.h"
 
 using namespace std;
@@ -59,6 +60,7 @@ private:
     QTime       *sysTime;
     QTimer      controlTick;
     QTimer      timer_msg;
+
     int         prevDataExchangeTime;
     int         runSingleStitchFunc();
     int         getTemprature(int node);
@@ -75,12 +77,12 @@ private:
     void        setHome(int node);
     bool        targetReached(int timeout);
     void        setCurrentLimit(int node, int currentLimit);
-public:
 
+public:
     // if the motor coupler moves, all the parameters need to calibrate agian
     const int absLockPos= 8*3000;
-    const int absOpenPos= -85;
-    const int absClosePos=-930;
+    const int absOpenPos= -90;
+    const int absClosePos=-894;
 
 
     Faulharbermotor();
@@ -94,13 +96,11 @@ public:
     void        disable();
     void        enableToggle();
     void        setSpeed(double scale);
-    void        start ();
+    void        run() override;
 
 private slots:
     void        controlLoop();
 
-    // Loop for sending deviceInfomation
-    void        msg_loop();
 
 public slots:
     void        runSingleStitch();
@@ -110,6 +110,7 @@ public slots:
 
     // TODO: NOT USED FOR NOW True for increase, false for decrease
     void        SutureSpeed(bool flag);
+
 
 signals:
     void        newSutureDeviceInfo(deviceInfomation);

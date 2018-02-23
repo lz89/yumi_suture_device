@@ -13,7 +13,6 @@ OptoForceSensor::~OptoForceSensor() {
     DisconnectSensor();
 }
 
-
 mytime_t Now()
 {
     struct timespec t;
@@ -51,7 +50,7 @@ mytime_t ElapsedTimeMicro(mytime_t p_Time)
  */
 bool OptoForceSensor::OpenPort(OptoDAQ & p_optoDAQ, OptoPorts & p_Ports, int p_iIndex)
 {
-    msleep(10); // We wait some ms to be sure about OptoPorts enumerated PortList
+    QThread::msleep(100); // We wait some ms to be sure about OptoPorts enumerated PortList
     OPort * portList = p_Ports.listPorts(true);
     int iLastSize = p_Ports.getLastSize();
     if (p_iIndex >= iLastSize) {
@@ -83,7 +82,7 @@ int OptoForceSensor::ReadPackage3D(OptoDAQ & p_optoDAQ, OptoPackage & p_Package)
         if (ElapsedTime(tNow) >= 1000) {
             break;
         }
-        msleep(1);
+        QThread::msleep(1);
     }
     return iSize;
 }
@@ -122,7 +121,7 @@ void OptoForceSensor::ConnectSensor() {
 
 void OptoForceSensor::DisconnectSensor() {
     timer_daq.stop();
-    msleep(100);
+    QThread::msleep(100);
     m_daq.close();
     std::cout<<"OptoForceSensor: Disconnected"<<std::endl;
 }
@@ -139,5 +138,18 @@ void OptoForceSensor::daq_loop() {
     m_curr_force.setZ(optoPackage.z);
 
     Q_EMIT newForceReading(m_curr_force);
+}
+
+void OptoForceSensor::start(double f) {
+    ConnectSensor();
+    freq = f;
+    timer_daq.start(1000/freq);	// Controller runs at every 25ms (40Hz)
+    timer_daq.moveToThread(&m_thread);    // Run controller in different thread
+    this->moveToThread(&m_thread);
+    m_thread.start();
+}
+
+void OptoForceSensor::finish() {
+    timer_daq.stop();
 }
 
