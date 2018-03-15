@@ -27,7 +27,7 @@ void ROSInterface::SutureCtrlCallback(const std_msgs::UInt32ConstPtr &msg) {
     if (cmd & SUTURE_RUN_PIERCE_3_MM)        Q_EMIT runPierceDeg(0+26);
     if (cmd & SUTURE_RUN_PIERCE_4_MM)        Q_EMIT runPierceDeg(0+34.8);
     if (cmd & SUTURE_RUN_PIERCE_5_MM)        Q_EMIT runPierceDeg(0+43.5);
-    if (cmd & SUTURE_RUN_PIERCE_6_MM)        Q_EMIT runPierceDeg(0+52.2);
+    if (cmd & SUTURE_RUN_PIERCE_6_MM)        Q_EMIT runPierceDeg(0+60);
 
     if (cmd & FORCE_SENSOR_CONNECT)          Q_EMIT ConnectSensor();
     if (cmd & FORCE_SENSOR_DISCONNECT)          Q_EMIT DisconnectSensor();
