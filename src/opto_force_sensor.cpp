@@ -130,7 +130,7 @@ void OptoForceSensor::daq_loop() {
     OptoPackage optoPackage;
     int iReadSize = ReadPackage3D(m_daq, optoPackage);
     if (iReadSize < 0) {
-        std::cout<<"OptoForceSensor: Something went wrong, DAQ closed!"<<std::endl;
+//        std::cout<<"OptoForceSensor: Something went wrong, DAQ closed!"<<std::endl;
         return;
     }
     m_curr_force.setX(optoPackage.x);

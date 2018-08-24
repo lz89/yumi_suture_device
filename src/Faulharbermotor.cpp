@@ -14,7 +14,7 @@ Faulharbermotor::Faulharbermotor() {
     }
     speedLimit[0]=50;
     speedLimit[1]=1000;
-    needleDir=1;
+//    needleDir=1;
     speedScale=0.4;
     prevDataExchangeTime=0;
 }
@@ -395,7 +395,7 @@ void Faulharbermotor::run() {
     //open port
     //sertialPort1 =new QSerialPort("Com3");
     sertialPort1 =new QSerialPort("/dev/ttyS0");
-    sertialPort1->setBaudRate(QSerialPort::Baud9600);
+    sertialPort1->setBaudRate(QSerialPort::Baud115200);
     sertialPort1->open(QIODevice::ReadWrite);
 
     // check connection ready or not by inquiring position
@@ -496,14 +496,14 @@ void Faulharbermotor::run() {
             //motor 1 rotate
         else if (status==3)
         {
-            if (needleDir==1)
-            {
+//            if (needleDir==1)
+//            {
                 setRelativePositionWithTargetReachNitofy(absLockPos, Motor1);
-            }
-            else
-            {
-                setRelativePositionWithTargetReachNitofy(-absLockPos, Motor1);
-            }
+//            }
+//            else
+//            {
+//                setRelativePositionWithTargetReachNitofy(-absLockPos, Motor1);
+//            }
             status=4;
             cout<<"status4: start locking "<<endl;
             cout << "Time: " << sysTime->elapsed() << std::endl;
@@ -517,6 +517,7 @@ void Faulharbermotor::run() {
                 QThread::msleep(10);
                 cout<<"status5: lock pos reached"<<endl;
                 cout << "Time: " << sysTime->elapsed() << std::endl;
+                setHome(1); // For continuous rotated design
             }
             else
             {
@@ -552,7 +553,7 @@ void Faulharbermotor::run() {
             static int count = 1;
             cout<<"stitch finished" << ", #" << count++ <<endl;
             cout<<"\n\n\n"<<endl;
-            needleDir=-needleDir;
+//            needleDir=-needleDir;
         }
         deviceInfomation curr_info = getAllCtrlInfomation();
         Q_EMIT newSutureDeviceInfo(curr_info);

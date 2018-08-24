@@ -80,9 +80,9 @@ private:
 
 public:
     // if the motor coupler moves, all the parameters need to calibrate agian
-    const int absLockPos= 8*3000;
-    const int absOpenPos= -90;
-    const int absClosePos=-894;
+    const int absLockPos= 32*3000;
+    const int absOpenPos= -1311;  // -90
+    const int absClosePos=-2134;     // -894
 
 
     Faulharbermotor();
